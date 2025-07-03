@@ -1,0 +1,545 @@
+INDEX:
+________________________________
+
+1. Same height
+2. Same width
+3. Same size
+
+4. Auto fit on
+5. Auto fit off
+6. Wrap on
+7 Wrap off
+
+9. Vertical stack
+10. Horizontal stack
+11. Pick Position
+12. Drop Position
+
+13. Swap position
+14. Text transfer
+15. Split a text box by break
+16. Combine multiple text box  into one
+
+17. Chevron Toggle
+18. Angle copy
+19. Internal margin Increase
+20. Internal margin decrease
+21. Internal margin zero
+
+
+
+
+1. Same height:
+________________________________
+
+Sub ApplySameHeightToAllObjects()
+
+    ' Get the first selected object
+    Dim firstObj As Shape
+    Set firstObj = ActiveWindow.Selection.ShapeRange(1)
+    
+    ' Loop through all selected objects except the first one
+    Dim i As Integer
+    For i = 2 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Set the height of the current object to be the same as the first object
+        currObj.Height = firstObj.Height
+        
+    Next i
+    
+End Sub
+
+2. Same width:
+________________________________
+
+Sub ApplySameWidthToAllObjects()
+
+    ' Get the first selected object
+    Dim firstObj As Shape
+    Set firstObj = ActiveWindow.Selection.ShapeRange(1)
+    
+    ' Loop through all selected objects except the first one
+    Dim i As Integer
+    For i = 2 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Set the width of the current object to be the same as the first object
+        currObj.Width = firstObj.Width
+        
+    Next i
+    
+End Sub
+
+
+3. Same size
+________________________________
+
+Sub ApplySameSizeToAllObjects()
+
+    ' Get the first selected object
+    Dim firstObj As Shape
+    Set firstObj = ActiveWindow.Selection.ShapeRange(1)
+    
+    ' Loop through all selected objects except the first one
+    Dim i As Integer
+    For i = 2 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Set the size (height and width) of the current object to be the same as the first object
+        currObj.Height = firstObj.Height
+        currObj.Width = firstObj.Width
+        
+    Next i
+    
+End Sub
+
+4. Auto fit on
+________________________________
+
+
+Sub FitTextToShapeForSelectedObjects()
+
+    ' Loop through all selected objects
+    Dim i As Integer
+    For i = 1 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Turn on AutoFit and fit text to shape for the current object
+        currObj.TextFrame2.AutoSize = msoAutoSizeShapeToFitText
+        currObj.TextFrame2.WordWrap = msoTrue
+        
+    Next i
+    
+End Sub
+
+5. Auto fit off
+________________________________
+
+Sub TurnOffAutoFitForSelectedObjects()
+
+    ' Loop through all selected objects
+    Dim i As Integer
+    For i = 1 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Turn off AutoFit for the current object
+        currObj.TextFrame2.AutoSize = msoAutoSizeNone
+        
+    Next i
+    
+End Sub
+
+
+6. Wrap on
+________________________________
+
+Sub TurnOnWordWrapForSelectedObjects()
+
+    ' Loop through all selected objects
+    Dim i As Integer
+    For i = 1 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Turn on word wrap for the current object
+        currObj.TextFrame2.WordWrap = msoTrue
+        
+    Next i
+    
+End Sub
+
+
+7 Wrap off
+________________________________
+
+Sub TurnOffWordWrapForSelectedObjects()
+
+    ' Loop through all selected objects
+    Dim i As Integer
+    For i = 1 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Turn off word wrap for the current object
+        currObj.TextFrame2.WordWrap = msoFalse
+        
+    Next i
+    
+End Sub
+
+
+9. Vertical stack
+________________________________
+
+Sub Stack_at_bottom()
+
+Dim Shp1 As Shape
+Dim Shp As Shape
+Dim x As Long
+Dim sngLastY As Single
+
+    Set Shp1 = ActiveWindow.Selection.ShapeRange(1)
+    sngLastY = Shp1.Top + Shp1.height
+
+    For x = 2 To ActiveWindow.Selection.ShapeRange.Count
+        Set Shp = ActiveWindow.Selection.ShapeRange(x)
+        With Shp
+            .Top = sngLastY
+            sngLastY = .Top + .height
+        End With
+    Next
+
+End Sub
+
+
+10. Horizontal stack
+________________________________
+
+Sub StackHorizontally()
+
+    ' Get the first selected object
+    Dim firstObj As Shape
+    Set firstObj = ActiveWindow.Selection.ShapeRange(1)
+    
+    ' Set the left position for the first object
+    Dim leftPos As Single
+    leftPos = firstObj.Left + firstObj.Width
+    
+    ' Loop through all selected objects except the first one
+    Dim i As Integer
+    For i = 2 To ActiveWindow.Selection.ShapeRange.Count
+        
+        ' Get the current object
+        Dim currObj As Shape
+        Set currObj = ActiveWindow.Selection.ShapeRange(i)
+        
+        ' Set the left position of the current object to be next to the previous object
+        currObj.Left = leftPos
+        
+        ' Update the left position for the next object
+        leftPos = currObj.Left + currObj.Width
+        
+    Next i
+    
+End Sub
+
+11. Pick Position
+________________________________
+
+' Declare a global variable to store the position
+Public posObj As Variant
+
+' Function to pick the position of the selected object and save it in posObj
+Sub PickPosition()
+    
+    ' Check if a shape is selected
+    If ActiveWindow.Selection.Type = ppSelectionShapes Then
+        
+        ' Get the selected shape
+        Dim selectedShape As Shape
+        Set selectedShape = ActiveWindow.Selection.ShapeRange(1)
+        
+        ' Store the shape's position in posObj as a two-element array
+        posObj = Array(selectedShape.Left, selectedShape.Top)
+        
+    End If
+    
+End Sub
+
+12. Drop Position
+________________________________
+
+' Function to drop the position stored in posObj onto the selected object
+Sub DropPosition()
+    
+    ' Check if a shape is selected and the posObj global variable is not empty
+    If ActiveWindow.Selection.Type = ppSelectionShapes And Not IsEmpty(posObj) Then
+        
+        ' Get the selected shape
+        Dim selectedShape As Shape
+        Set selectedShape = ActiveWindow.Selection.ShapeRange(1)
+        
+        ' Retrieve the stored position from posObj and apply it to the selected shape
+        selectedShape.Left = posObj(0)
+        selectedShape.Top = posObj(1)
+        
+    End If
+    
+End Sub
+
+13. Swap position
+________________________________
+
+Sub SwapPosition()
+    ' Check if two shapes are selected
+    If ActiveWindow.Selection.Type = ppSelectionShapes And ActiveWindow.Selection.ShapeRange.Count = 2 Then
+        
+        ' Get the two selected shapes
+        Dim shape1 As Shape, shape2 As Shape
+        Set shape1 = ActiveWindow.Selection.ShapeRange(1)
+        Set shape2 = ActiveWindow.Selection.ShapeRange(2)
+        
+        ' Swap the positions of the two shapes
+        Dim tempPosition As Variant
+        tempPosition = Array(shape1.Left, shape1.Top)
+        shape1.Left = shape2.Left
+        shape1.Top = shape2.Top
+        shape2.Left = tempPosition(0)
+        shape2.Top = tempPosition(1)
+        
+    End If
+End Sub
+
+
+14. Text transfer
+________________________________
+
+Sub TransferUnformattedText()
+    ' Check if two shapes are selected
+    If ActiveWindow.Selection.Type = ppSelectionShapes And ActiveWindow.Selection.ShapeRange.Count = 2 Then
+        
+        ' Get the two selected shapes
+        Dim shape1 As Shape, shape2 As Shape
+        Set shape1 = ActiveWindow.Selection.ShapeRange(1)
+        Set shape2 = ActiveWindow.Selection.ShapeRange(2)
+        
+        ' Transfer the unformatted text from shape1 to shape2
+        If shape1.HasTextFrame And shape2.HasTextFrame Then
+            shape2.TextFrame.TextRange.Text = shape1.TextFrame.TextRange.Text
+        End If
+        
+    End If
+End Sub
+
+15. Split a text box by break
+______________________________________________
+
+Sub SplitSelectedTextBox()
+
+    Dim oShape As Shape
+    Dim oRange As TextRange
+    Dim sText As String
+    Dim arrText() As String
+    Dim i As Integer
+    Dim topPos As Double
+    Dim leftPos As Double
+    Dim height As Double
+    Dim width As Double
+    
+    ' Check if a single shape is selected and it is a TextBox
+    If ActiveWindow.Selection.ShapeRange.Count = 1 And ActiveWindow.Selection.ShapeRange(1).Type = msoTextBox Then
+    
+        Set oShape = ActiveWindow.Selection.ShapeRange(1)
+        Set oRange = oShape.TextFrame.TextRange
+        
+        ' Split the text into an array based on hard line breaks
+        sText = oRange.Text
+        arrText = Split(sText, Chr(13))
+        
+        ' Record the original shape dimensions
+        topPos = oShape.Top
+        leftPos = oShape.Left
+        height = oShape.Height / (UBound(arrText) + 1)
+        width = oShape.Width
+        
+        ' Delete the original shape
+        oShape.Delete
+        
+        ' Create a new shape for each line of text and position them accordingly
+        For i = 0 To UBound(arrText)
+            If Trim(arrText(i)) <> "" Then
+                Set oShape = ActivePresentation.Slides(1).Shapes.AddTextbox(msoTextOrientationHorizontal, leftPos, topPos + i * height, width, height)
+                Set oRange = oShape.TextFrame.TextRange
+                oRange.Text = arrText(i)
+            End If
+        Next i
+        
+    End If
+
+End Sub
+
+
+
+16. Combine multiple text box  into one
+______________________________________________
+
+Sub CombineSelectedTextBoxes()
+
+    Dim oShape As Shape
+    Dim oNewShape As Shape
+    Dim oNewTextRange As TextRange
+    
+    ' Check if more than one shape is selected and all shapes are TextBoxes
+    If ActiveWindow.Selection.ShapeRange.Count > 1 And ActiveWindow.Selection.ShapeRange.Type = msoTextBox Then
+    
+        ' Sort selected shapes by their selected order
+        ActiveWindow.Selection.ShapeRange.ZOrder msoSendToBack
+        
+        ' Get the slide of the first selected shape
+        Dim slideIndex As Integer
+        slideIndex = ActiveWindow.Selection.ShapeRange(1).Parent.SlideIndex
+        
+        ' Create new TextBox for combined text
+        Set oNewShape = ActivePresentation.Slides(slideIndex).Shapes.AddTextbox(msoTextOrientationHorizontal, ActiveWindow.Selection.ShapeRange(1).Left, ActiveWindow.Selection.ShapeRange(1).Top, 400, 200)
+        Set oNewTextRange = oNewShape.TextFrame.TextRange
+        
+        ' Combine text from all selected TextBoxes
+        For Each oShape In ActiveWindow.Selection.ShapeRange
+            oNewTextRange.InsertAfter oShape.TextFrame.TextRange.Text & vbCrLf
+        Next oShape
+        
+        ' Delete original selected shapes
+        ActiveWindow.Selection.ShapeRange.Delete
+        
+        ' Auto-fit new TextBox to fit combined text
+        oNewShape.TextFrame.AutoSize = ppAutoSizeShapeToFitText
+        
+        ' Select new shape
+        oNewShape.Select
+        
+    End If
+
+End Sub
+
+
+17. Chevron Toggle
+______________________________________________
+
+Sub FixSelectedShapes()
+    Dim shp As Shape
+    Dim adjValue As Double
+    
+    ' Set the desired adjustment value
+    adjValue = 0.25 ' Change this value to the desired adjustment value
+    
+    ' Loop through each selected shape
+    For Each shp In ActiveWindow.Selection.ShapeRange
+        ' Check if the selected shape has an adjustment value
+        If shp.Adjustments.Count > 0 Then
+            ' Set the adjustment value to the desired value
+            shp.Adjustments.Item(1) = adjValue
+        End If
+    Next shp
+End Sub
+
+
+18. Angle copy
+______________________________________________
+
+Sub FixSelectedShapesangle()
+Dim shp As Shape
+Dim adjValue As Double
+' Get the adjustment value from the first selected shape
+If ActiveWindow.Selection.ShapeRange.Count > 0 Then
+    adjValue = ActiveWindow.Selection.ShapeRange(1).Adjustments.Item(1)
+Else
+    ' Exit the macro if no shapes are selected
+    Exit Sub
+End If
+
+' Loop through each selected shape
+For Each shp In ActiveWindow.Selection.ShapeRange
+    ' Check if the selected shape has an adjustment value
+    If shp.Adjustments.Count > 0 Then
+        ' Set the adjustment value to the desired value
+        shp.Adjustments.Item(1) = adjValue
+    End If
+Next shp
+End Sub
+
+
+19. Internal margin Increase
+______________________________________________
+
+Sub IncreaseSelectedTextBoxMargins()
+    Dim shp As Shape
+    If ActiveWindow.Selection.Type = ppSelectionShapes Then
+        Set shp = ActiveWindow.Selection.ShapeRange(1)
+        With shp.TextFrame
+            .MarginBottom = .MarginBottom + 0.6
+            .MarginLeft = .MarginLeft + 0.6
+            .MarginRight = .MarginRight + 0.6
+            .MarginTop = .MarginTop + 0.6
+        End With
+    Else
+        MsgBox "Please select a textbox first.", vbInformation, "No textbox selected"
+    End If
+End Sub
+
+
+20. Internal margin Decrease
+______________________________________________
+
+Sub ReduceSelectedTextBoxMargins()
+    Dim shp As Shape
+    If ActiveWindow.Selection.Type = ppSelectionShapes Then
+        Set shp = ActiveWindow.Selection.ShapeRange(1)
+        With shp.TextFrame
+            .MarginBottom = .MarginBottom - 0.6
+            .MarginLeft = .MarginLeft - 0.6
+            .MarginRight = .MarginRight - 0.6
+            .MarginTop = .MarginTop - 0.6
+        End With
+    Else
+        MsgBox "Please select a textbox first.", vbInformation, "No textbox selected"
+    End If
+End Sub
+
+21. Internal margin zero
+______________________________________________
+
+Sub ZeroSelectedTextBoxMargins()
+    Dim shp As Shape
+    If ActiveWindow.Selection.Type = ppSelectionShapes Then
+        Set shp = ActiveWindow.Selection.ShapeRange(1)
+        With shp.TextFrame
+            .MarginBottom = 0
+            .MarginLeft = 0
+            .MarginRight = 0
+            .MarginTop = 0
+        End With
+    Else
+        MsgBox "Please select a textbox first.", vbInformation, "No textbox selected"
+    End If
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,357 @@
+1. Fill colour 
+2. Line colour
+3. Line weight
+4. Line Style
+5. Start/End Arrow
+6. Fill and Line
+7. Shape
+8. Same width
+9. Same height
+10. Same size
+11. Same font colour
+
+
+
+
+1. Fill colour 
+________________________
+
+Sub SelectShapesWithSameFill()
+    
+    Dim currentColor As Long
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the fill color of the currently selected shape
+    currentColor = ActiveWindow.Selection.ShapeRange.Fill.ForeColor.RGB
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same fill color
+    For Each oshp In osld.Shapes
+        'Check if the shape has a fill color and if it matches the current color
+        If oshp.Fill.ForeColor.RGB = currentColor Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+2. Line colour
+________________________
+
+Sub SelectShapesWithSameLine()
+    
+    Dim currentColor As Long
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the line color of the currently selected shape
+    currentColor = ActiveWindow.Selection.ShapeRange.Line.ForeColor.RGB
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same line color
+    For Each oshp In osld.Shapes
+        'Check if the shape has a line color and if it matches the current color
+        If oshp.Line.ForeColor.RGB = currentColor Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+
+3. Line weight
+________________________
+
+Sub SelectShapesWithSameLineWeight()
+    
+    Dim currentWeight As Single
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the line weight of the currently selected shape
+    currentWeight = ActiveWindow.Selection.ShapeRange.Line.Weight
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same line weight
+    For Each oshp In osld.Shapes
+        'Check if the shape has a line weight and if it matches the current weight
+        If oshp.Line.Weight = currentWeight Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+
+4. Line Style
+________________________
+
+Sub SelectShapesWithSameDashType()
+    
+    Dim currentDashType As MsoLineDashStyle
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the dash type of the currently selected shape
+    currentDashType = ActiveWindow.Selection.ShapeRange.Line.DashStyle
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same dash type
+    For Each oshp In osld.Shapes
+        'Check if the shape has a dash type and if it matches the current dash type
+        If oshp.Line.DashStyle = currentDashType Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+5. Start/End Arrow
+________________________
+
+A. Start Arrow
+________________________
+
+Sub SelectLinesWithSameBeginArrowType()
+    
+    Dim startArrow As MsoArrowheadStyle
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the starting arrow shape of the currently selected line
+    startArrow = ActiveWindow.Selection.ShapeRange.Line.BeginArrowheadStyle
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same starting arrow shape (ignoring size)
+    For Each oshp In osld.Shapes
+        'Check if the shape is a line, and if its starting arrow shape matches the selected line (ignoring size)
+        If oshp.Type = msoLine And oshp.Line.BeginArrowheadStyle = startArrow Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+B. End Arrow
+________________________
+
+Sub SelectLinesWithSameEndArrowType()
+    
+    Dim endArrow As MsoArrowheadStyle
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the ending arrow shape of the currently selected line
+    endArrow = ActiveWindow.Selection.ShapeRange.Line.EndArrowheadStyle
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same ending arrow shape (ignoring size)
+    For Each oshp In osld.Shapes
+        'Check if the shape is a line, and if its ending arrow shape matches the selected line (ignoring size)
+        If oshp.Type = msoLine And oshp.Line.EndArrowheadStyle = endArrow Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+6. Fill and Line
+________________________
+
+Sub SelectShapesWithSameFillAndLineColor()
+    
+    Dim currentFill As Long
+    Dim currentLine As Long
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the fill color and line color of the currently selected shape
+    currentFill = ActiveWindow.Selection.ShapeRange.Fill.ForeColor.RGB
+    currentLine = ActiveWindow.Selection.ShapeRange.Line.ForeColor.RGB
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same fill and line color
+    For Each oshp In osld.Shapes
+        'Check if the shape has a fill and line color, and if they match the current fill and line color
+        If oshp.Fill.ForeColor.RGB = currentFill And oshp.Line.ForeColor.RGB = currentLine Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+7. Shape
+________________________
+
+Sub SelectShapesWithSameShape()
+    Dim shp As Shape
+    Dim selShape As String
+    
+    ' Get the shape name of the first selected shape
+    If ActiveWindow.Selection.ShapeRange.Count > 0 Then
+        selShape = ActiveWindow.Selection.ShapeRange(1).Name
+    Else
+        ' Exit the macro if no shapes are selected
+        Exit Sub
+    End If
+    
+    ' Loop through each shape on the slide and select the ones with the same shape as the first selected shape
+    For Each shp In ActiveWindow.Selection.SlideRange(1).Shapes
+        If shp.Type = msoAutoShape And shp.AutoShapeType = ActiveWindow.Selection.ShapeRange(1).AutoShapeType Then
+            shp.Select (False)
+        End If
+    Next shp
+End Sub
+
+
+8. Same width
+________________________
+
+Sub SelectShapesWithSameWidth()
+    
+    Dim currentWidth As Single
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the width of the currently selected shape
+    currentWidth = ActiveWindow.Selection.ShapeRange.Width
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same width
+    For Each oshp In osld.Shapes
+        'Check if the shape has a width and if it matches the current width
+        If oshp.Width = currentWidth Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+9. Same height
+________________________
+
+Sub SelectShapesWithSameHeight()
+
+    Dim currentHeight As Single
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the height of the currently selected shape
+    currentHeight = ActiveWindow.Selection.ShapeRange.Height
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same height
+    For Each oshp In osld.Shapes
+        'Check if the shape has a height and if it matches the current height
+        If oshp.Height = currentHeight Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+10. Same size
+________________________
+
+Sub SelectShapesWithSameSize()
+    
+    Dim currentWidth As Single
+    Dim currentHeight As Single
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the width and height of the currently selected shape
+    currentWidth = ActiveWindow.Selection.ShapeRange.Width
+    currentHeight = ActiveWindow.Selection.ShapeRange.Height
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same size
+    For Each oshp In osld.Shapes
+        'Check if the shape has the same width and height
+        If oshp.Width = currentWidth And oshp.Height = currentHeight Then
+            oshp.Select (False)
+        End If
+    Next oshp
+    
+End Sub
+
+
+11. Same font colour
+________________________
+
+Sub SelectShapesWithSameTextColor()
+    
+    Dim currentColor As Long
+    Dim osld As Slide
+    Dim oshp As Shape
+    
+    'Get the text color of the currently selected shape
+    currentColor = ActiveWindow.Selection.ShapeRange.TextFrame2.TextRange.Font.Fill.ForeColor.RGB
+    
+    'Select all shapes on the current slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    
+    'Loop through each shape and select it if it has the same text color
+    For Each oshp In osld.Shapes
+        'Check if the shape has a text frame and if its text color matches the current color
+        If oshp.HasTextFrame Then
+            If oshp.TextFrame2.TextRange.Font.Fill.ForeColor.RGB = currentColor Then
+                oshp.Select (False)
+            End If
+        End If
+    Next oshp
+    
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
