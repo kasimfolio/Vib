@@ -334,42 +334,82 @@ End Sub
 
 8. Convert Table
 ___________________________________________________________________________________________________________________________
-Sub ZeroSelectedTextBoxMargins()
+Sub ConvertTableToShapes()
     Dim shp As Shape
+    Dim tbl As Table
+    Dim slide As slide
+    Dim row As Long, col As Long
+    Dim cellLeft As Single, cellTop As Single
+    Dim cellWidth As Single, cellHeight As Single
+    Dim newShape As Shape
+    Dim cellShape As Shape
+    Dim tf2 As TextFrame2
+    Dim originalTF2 As TextFrame2
 
-    If ActiveWindow.Selection.Type = ppSelectionShapes Then
-        For Each shp In ActiveWindow.Selection.ShapeRange
-            If shp.HasTextFrame Then
-                With shp.TextFrame2
-                    ' Zero margins
-                    .MarginTop = 0
-                    .MarginBottom = 0
-                    .MarginLeft = 0
-                    .MarginRight = 0
+    ' Ensure a shape is selected
+    If ActiveWindow.Selection.Type <> ppSelectionShapes Then
+        MsgBox "Please select a table first.", vbExclamation
+        Exit Sub
+    End If
 
-                    ' Character spacing
-                    If .HasText Then
-                        .textRange.Font.spacing = Normal
-                    
-                    End If
+    Set shp = ActiveWindow.Selection.ShapeRange(1)
+
+    ' Ensure selected shape is a table
+    If Not shp.HasTable Then
+        MsgBox "Selected shape is not a table.", vbExclamation
+        Exit Sub
+    End If
+
+    Set tbl = shp.Table
+    Set slide = ActivePresentation.Slides(ActiveWindow.View.slide.SlideIndex)
+
+    ' Loop through each cell
+    For row = 1 To tbl.Rows.Count
+        For col = 1 To tbl.Columns.Count
+            With tbl.Cell(row, col)
+                Set cellShape = .Shape
+
+                ' Get position and size relative to slide
+                cellLeft = cellShape.Left + shp.Left
+                cellTop = cellShape.Top + shp.Top
+                cellWidth = cellShape.Width
+                cellHeight = cellShape.Height
+
+                ' Create a new textbox shape
+                Set newShape = slide.Shapes.AddTextbox( _
+                    Orientation:=msoTextOrientationHorizontal, _
+                    Left:=cellLeft, Top:=cellTop, _
+                    Width:=cellWidth, Height:=cellHeight)
+
+                ' Copy text and margins
+                Set tf2 = newShape.TextFrame2
+                Set originalTF2 = cellShape.TextFrame2
+
+                With tf2
+                    .textRange.Text = originalTF2.textRange.Text
+                    .MarginTop = originalTF2.MarginTop
+                    .MarginBottom = originalTF2.MarginBottom
+                    .MarginLeft = originalTF2.MarginLeft
+                    .MarginRight = originalTF2.MarginRight
+                    .AutoSize = ppAutoSizeNone
+                    .WordWrap = msoTrue
                 End With
 
-                ' Line spacing (using TextFrame, not TextFrame2)
-                If shp.TextFrame.HasText Then
-                    With shp.TextFrame.textRange.ParagraphFormat
-                        .LineRuleWithin = msoTrue
-                        .SpaceWithin = 1 ' Single line spacing
-                    End With
-                End If
-            End If
-        Next shp
-    Else
-        MsgBox "Please select one or more shapes with text.", vbExclamation
-    End If
+                ' Copy fill color from original cell
+                With newShape.Fill
+                    .Visible = msoTrue
+                    .ForeColor.RGB = cellShape.Fill.ForeColor.RGB
+                    .BackColor.RGB = cellShape.Fill.BackColor.RGB
+                    .Transparency = cellShape.Fill.Transparency
+                    .Solid
+                End With
+            End With
+        Next col
+    Next row
+
+    ' Optional: shp.Delete ' uncomment to delete original table
+
+    MsgBox "Table converted to individual shapes with formatting.", vbInformation
 End Sub
-
-
-
-
 
 
