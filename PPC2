@@ -1,0 +1,375 @@
+1. All Copy
+2. Multi Text Transfer
+
+
+1. All Copy
+______________________________________________________________________________________________________
+Public Sub CopyToAllSlidesExceptCurrent()
+    Dim activeSlide As slide
+    Dim selectedShape As Shape
+    Dim sld As slide
+    Dim newShape As Shape
+    
+    ' Ensure a shape is selected
+    If ActiveWindow.Selection.Type <> ppSelectionShapes Then
+        MsgBox "Please select a shape first.", vbExclamation
+        Exit Sub
+    End If
+    
+    Set activeSlide = ActiveWindow.View.slide
+    Set selectedShape = ActiveWindow.Selection.ShapeRange(1)
+    
+    ' Loop through all slides in the presentation
+    For Each sld In ActivePresentation.Slides
+        If sld.SlideIndex <> activeSlide.SlideIndex Then
+            ' Copy and paste the shape
+            selectedShape.Copy
+            sld.Shapes.Paste
+            Set newShape = sld.Shapes(sld.Shapes.Count)
+            
+            ' Set position and size
+            With newShape
+                .Left = selectedShape.Left
+                .Top = selectedShape.Top
+                .Width = selectedShape.Width
+                .Height = selectedShape.Height
+            End With
+        End If
+    Next sld
+    
+End Sub
+
+
+2. Multi Text Transfer
+____________________________________________________________________________________________________________________
+Public Sub TransferUnformattedTextToAllSelected()
+    Dim shapeSource As Shape
+    Dim shapeTarget As Shape
+    Dim i As Integer
+
+    ' Check if multiple shapes are selected
+    If ActiveWindow.Selection.Type = ppSelectionShapes And ActiveWindow.Selection.ShapeRange.Count >= 2 Then
+        Set shapeSource = ActiveWindow.Selection.ShapeRange(1)
+
+        ' Ensure the source shape has a text frame
+        If Not shapeSource.HasTextFrame Then
+            MsgBox "The first selected shape has no text.", vbExclamation
+            Exit Sub
+        End If
+
+        ' Loop through all selected shapes starting from the second one
+        For i = 2 To ActiveWindow.Selection.ShapeRange.Count
+            Set shapeTarget = ActiveWindow.Selection.ShapeRange(i)
+
+            ' Check if target shape can contain text
+            If shapeTarget.HasTextFrame Then
+                shapeTarget.TextFrame.textRange.Text = shapeSource.TextFrame.textRange.Text
+            End If
+        Next i
+
+    End If
+End Sub
+
+
+3. Multi Copy
+___________________________________________________________________________________________________________________________
+Public Sub CopyTextFromShapes()
+    Dim i As Integer
+    Dim shapeCount As Integer
+    Dim copiedText As String
+
+    ' Clear existing tags
+    Dim pres As Presentation
+    Set pres = ActivePresentation
+    For i = pres.Tags.Count To 1 Step -1
+        If Left(pres.Tags.Name(i), 9) = "CopyText_" Then
+            pres.Tags.Delete pres.Tags.Name(i)
+        End If
+    Next i
+
+    ' Check if shapes are selected
+    If ActiveWindow.Selection.Type <> ppSelectionShapes Then
+        MsgBox "Please select the shapes to copy text from.", vbExclamation
+        Exit Sub
+    End If
+
+    shapeCount = ActiveWindow.Selection.ShapeRange.Count
+
+    ' Store each shape's text as a tag
+    For i = 1 To shapeCount
+        With ActiveWindow.Selection.ShapeRange(i)
+            If .HasTextFrame Then
+                copiedText = .TextFrame.textRange.Text
+            Else
+                copiedText = ""
+            End If
+            pres.Tags.Add "CopyText_" & i, copiedText
+        End With
+    Next i
+
+    pres.Tags.Add "CopyText_Count", shapeCount
+
+End Sub
+
+4. Multi Paste
+___________________________________________________________________________________________________________________________
+Sub PasteTextToShapes()
+    Dim pres As Presentation
+    Set pres = ActivePresentation
+
+    Dim shapeCount As Integer
+    Dim i As Integer
+    Dim copiedText As String
+
+    If pres.Tags("CopyText_Count") = "" Then
+        MsgBox "No copied text found. Run CopyTextFromShapes first.", vbExclamation
+        Exit Sub
+    End If
+
+    shapeCount = CInt(pres.Tags("CopyText_Count"))
+
+    ' Check if selection count matches
+    If ActiveWindow.Selection.Type <> ppSelectionShapes Then
+        MsgBox "Please select the target shapes.", vbExclamation
+        Exit Sub
+    End If
+
+    If ActiveWindow.Selection.ShapeRange.Count <> shapeCount Then
+        MsgBox "Number of selected shapes does not match copied shape count.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Paste text into selected shapes
+    For i = 1 To shapeCount
+        copiedText = pres.Tags("CopyText_" & i)
+        With ActiveWindow.Selection.ShapeRange(i)
+            If .HasTextFrame Then
+                .TextFrame.textRange.Text = copiedText
+            End If
+        End With
+    Next i
+
+End Sub
+
+5. Split Points
+___________________________________________________________________________________________________________________________
+Sub SplitShapeByParagraph()
+    Dim shp As Shape
+    Dim paraCount As Integer
+    Dim i As Integer, j As Integer
+    Dim paraText As String
+    Dim baseLeft As Single, baseTop As Single
+    Dim newShp As Shape
+    Dim sld As slide
+    Dim textRange As TextRange2
+    Dim paraRange As TextRange2
+    Dim tempShapes() As Shape
+    Dim totalHeight As Single
+    Dim spacing As Single: spacing = 10
+    Dim validCount As Integer
+    Dim currentTop As Single
+
+    ' Check if a shape is selected
+    If ActiveWindow.Selection.Type <> ppSelectionShapes Then
+        MsgBox "Please select a shape that contains multiple paragraphs.", vbExclamation
+        Exit Sub
+    End If
+
+    Set shp = ActiveWindow.Selection.ShapeRange(1)
+
+    If Not shp.HasTextFrame Then
+        MsgBox "Selected shape does not contain text.", vbExclamation
+        Exit Sub
+    End If
+
+    Set textRange = shp.TextFrame2.textRange
+    paraCount = textRange.Paragraphs.Count
+
+    If paraCount < 2 Then
+        MsgBox "The selected shape has only one paragraph. Nothing to split.", vbInformation
+        Exit Sub
+    End If
+
+    Set sld = ActivePresentation.Slides(shp.Parent.SlideIndex)
+    baseLeft = shp.Left
+    baseTop = shp.Top
+
+    ' First pass: duplicate non-empty paragraphs and measure total height
+    ReDim tempShapes(1 To paraCount)
+    validCount = 0
+    totalHeight = 0
+
+    For i = 1 To paraCount
+        paraText = Trim(Replace(Replace(textRange.Paragraphs(i).Text, vbCr, ""), vbLf, ""))
+
+        If paraText <> "" Then
+            Set newShp = shp.Duplicate.Item(1)
+            newShp.TextFrame2.textRange.Text = paraText
+            validCount = validCount + 1
+            Set tempShapes(validCount) = newShp
+            totalHeight = totalHeight + newShp.Height + spacing
+        End If
+    Next i
+
+    If validCount = 0 Then
+        MsgBox "No valid paragraphs found.", vbInformation
+        Exit Sub
+    End If
+
+    totalHeight = totalHeight - spacing ' remove last extra spacing
+    currentTop = baseTop ' start stacking from original top
+
+    ' Second pass: reposition all valid shapes
+    For j = 1 To validCount
+        Set newShp = tempShapes(j)
+        With newShp
+            .Left = baseLeft
+            .Top = currentTop
+            currentTop = currentTop + .Height + spacing
+        End With
+    Next j
+
+    ' Delete the original shape
+    shp.Delete
+End Sub
+
+6. Merge Points
+___________________________________________________________________________________________________________________________
+Sub MergeShapesToSingleParagraphBox()
+    Dim sel As Selection
+    Dim shpRange As ShapeRange
+    Dim shp As Shape
+    Dim mergedText As String
+    Dim i As Integer
+    Dim newShp As Shape
+    Dim avgLeft As Single, avgTop As Single
+    Dim totalWidth As Single, maxHeight As Single
+
+    ' Ensure multiple shapes are selected
+    Set sel = ActiveWindow.Selection
+    If sel.Type <> ppSelectionShapes Or sel.ShapeRange.Count < 2 Then
+        MsgBox "Please select at least two shapes to merge.", vbExclamation
+        Exit Sub
+    End If
+
+    Set shpRange = sel.ShapeRange
+
+    ' Initialize positioning
+    avgLeft = 0
+    avgTop = 0
+    totalWidth = 0
+    maxHeight = 0
+
+    ' Collect text and calculate average position
+    For i = 1 To shpRange.Count
+        Set shp = shpRange(i)
+
+        If shp.HasTextFrame Then
+            mergedText = mergedText & Trim(shp.TextFrame2.textRange.Text) & vbCrLf
+            avgLeft = avgLeft + shp.Left
+            avgTop = avgTop + shp.Top
+            totalWidth = totalWidth + shp.Width
+            If shp.Height > maxHeight Then maxHeight = shp.Height
+        End If
+    Next i
+
+    ' Remove trailing line break
+    If Right(mergedText, 2) = vbCrLf Then
+        mergedText = Left(mergedText, Len(mergedText) - 2)
+    End If
+
+    ' Compute average position
+    avgLeft = avgLeft / shpRange.Count
+    avgTop = avgTop / shpRange.Count
+
+    ' Duplicate one shape to preserve formatting
+    Set newShp = shpRange(1).Duplicate.Item(1)
+    newShp.Left = avgLeft
+    newShp.Top = avgTop
+    newShp.Width = totalWidth / shpRange.Count
+    newShp.TextFrame2.textRange.Text = mergedText
+
+    ' Delete all original shapes
+    For i = shpRange.Count To 1 Step -1
+        shpRange(i).Delete
+    Next i
+
+End Sub
+
+7. Zero Margin
+___________________________________________________________________________________________________________________________
+Sub ZeroSelectedTextBoxMargins()
+    Dim shp As Shape
+
+    If ActiveWindow.Selection.Type = ppSelectionShapes Then
+        For Each shp In ActiveWindow.Selection.ShapeRange
+            If shp.HasTextFrame Then
+                With shp.TextFrame2
+                    ' Zero margins
+                    .MarginTop = 0
+                    .MarginBottom = 0
+                    .MarginLeft = 0
+                    .MarginRight = 0
+
+                    ' Character spacing
+                    If .HasText Then
+                        .textRange.Font.spacing = Normal
+                    
+                    End If
+                End With
+
+                ' Line spacing (using TextFrame, not TextFrame2)
+                If shp.TextFrame.HasText Then
+                    With shp.TextFrame.textRange.ParagraphFormat
+                        .LineRuleWithin = msoTrue
+                        .SpaceWithin = 1 ' Single line spacing
+                    End With
+                End If
+            End If
+        Next shp
+    Else
+        MsgBox "Please select one or more shapes with text.", vbExclamation
+    End If
+End Sub
+
+8. Convert Table
+___________________________________________________________________________________________________________________________
+Sub ZeroSelectedTextBoxMargins()
+    Dim shp As Shape
+
+    If ActiveWindow.Selection.Type = ppSelectionShapes Then
+        For Each shp In ActiveWindow.Selection.ShapeRange
+            If shp.HasTextFrame Then
+                With shp.TextFrame2
+                    ' Zero margins
+                    .MarginTop = 0
+                    .MarginBottom = 0
+                    .MarginLeft = 0
+                    .MarginRight = 0
+
+                    ' Character spacing
+                    If .HasText Then
+                        .textRange.Font.spacing = Normal
+                    
+                    End If
+                End With
+
+                ' Line spacing (using TextFrame, not TextFrame2)
+                If shp.TextFrame.HasText Then
+                    With shp.TextFrame.textRange.ParagraphFormat
+                        .LineRuleWithin = msoTrue
+                        .SpaceWithin = 1 ' Single line spacing
+                    End With
+                End If
+            End If
+        Next shp
+    Else
+        MsgBox "Please select one or more shapes with text.", vbExclamation
+    End If
+End Sub
+
+
+
+
+
+
