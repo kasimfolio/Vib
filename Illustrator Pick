@@ -1,0 +1,80 @@
+// ExportTopLeftToJSON.jsx
+
+// JSON polyfill for ExtendScript
+if (typeof JSON === "undefined") {
+    JSON = {};
+}
+
+(function () {
+    function f(n) {
+        return n < 10 ? '0' + n : n;
+    }
+
+    if (typeof JSON.stringify !== "function") {
+        JSON.stringify = function (obj) {
+            var t = typeof obj;
+            if (t !== "object" || obj === null) {
+                if (t === "string") obj = '"' + obj + '"';
+                return String(obj);
+            } else {
+                var json = [], isArray = (obj && obj.constructor === Array);
+                for (var key in obj) {
+                    var value = obj[key];
+                    var type = typeof value;
+                    if (type === "string") value = '"' + value + '"';
+                    else if (type === "object" && value !== null) value = JSON.stringify(value);
+                    json.push((isArray ? "" : '"' + key + '":') + String(value));
+                }
+                return (isArray ? "[" : "{") + String(json) + (isArray ? "]" : "}");
+            }
+        };
+    }
+
+    if (typeof JSON.parse !== "function") {
+        JSON.parse = function (s) {
+            return eval('(' + s + ')');
+        };
+    }
+})();
+
+if (app.documents.length === 0) {
+    alert("No document open.");
+} else if (app.selection.length !== 1) {
+    alert("Please select exactly one object.");
+} else {
+    var doc = app.activeDocument;
+    var artboardIndex = doc.artboards.getActiveArtboardIndex();
+    var artboard = doc.artboards[artboardIndex];
+    var sel = app.selection[0];
+
+    var abBounds = artboard.artboardRect; // [left, top, right, bottom]
+    var abLeft = abBounds[0];
+    var abTop = abBounds[1];
+
+    var bounds = sel.visibleBounds; // [left, top, right, bottom]
+    var left = bounds[0];
+    var top = bounds[1];
+
+    var relX = left - abLeft;
+    var relY = abTop - top;
+
+    var positionData = {
+        artboardIndex: artboardIndex,
+        topLeft: {
+            x: relX,
+            y: relY
+        }
+    };
+
+    var jsonString = JSON.stringify(positionData, null, 2);
+
+    var desktopPath = Folder.desktop.fsName;
+    var file = new File(desktopPath + "/selectedObjectPosition.json");
+    if (file.open("w")) {
+        file.write(jsonString);
+        file.close();
+        alert("Top-left position saved to 'selectedObjectPosition.json' on desktop.");
+    } else {
+        alert("Failed to save JSON file.");
+    }
+}
